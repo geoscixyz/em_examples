@@ -19,7 +19,7 @@ def ColeColePelton(f, sigmaInf, eta, tau, c, option):
     else:
         raise Exception("Put only sigma or resis")
 
-def transFilt(datFcn, t, tol=1e-12):
+def transFilt(datFcn, t, tol=1e-12, option="stepoff"):
     """
 
         Add explanation about Digital filtering
@@ -46,7 +46,13 @@ def transFilt(datFcn, t, tol=1e-12):
 
     # Calculate the frequency domain data
     hz = datFcn(frq_int)
-    hziw = hz.imag/omega_int
+    if option == "stepoff":
+        hziw = hz.imag/omega_int
+    elif option=="impulse":
+        hziw = -hz.real
+    else:
+        raise Exception("Not implemented!")
+
 
     # Clean the low frequency results
     idKeep = [idx for idx in range(len(hz)) if abs(hz.imag)[idx] > tol]
