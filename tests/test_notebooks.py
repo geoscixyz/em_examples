@@ -38,7 +38,6 @@ def get(nbname, nbpath):
         check = nbexe.returncode
         if check == 0:
             print '\n ..... {0} Passed ..... \n'.format(nbname)
-            print os.getcwd()
             subprocess.call(['rm', '{0}.html'.format(
                              os.path.sep.join(os.getcwd().split(os.path.sep)
                              + [nbpath.split(os.path.sep)[-1][:-6]]
