@@ -65,4 +65,3 @@ TestNotebooks = type('TestNotebooks', (unittest.TestCase,), attrs)
 
 if __name__ == '__main__':
     unittest.main()
-    tearDown()
