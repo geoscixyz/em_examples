@@ -38,6 +38,10 @@ def get(nbname, nbpath):
         check = nbexe.returncode
         if check == 0:
             print '\n ..... {0} Passed ..... \n'.format(nbname)
+            subprocess.call(['rm', '{0}.html'.format(
+                             os.path.sep.join(TESTDIR.split(os.path.sep)[:-1]
+                             + [nbpath.split(os.path.sep)[-1][:-6]]
+                             ))])
         else:
             print '\n <<<<< {0} FAILED >>>>> \n'.format(nbname)
             print 'Captured Output: \n {0}'.format(err)
@@ -46,10 +50,6 @@ def get(nbname, nbpath):
 
     return test_func
 
-
-def tearDown():
-    subprocess.call(['find', '{0}'.format(os.path.sep.join(TESTDIR.split(os.path.sep)[:-1])),
-                    '-type', 'f', '-name', '*.html', '-delete'])
 
 
 attrs = dict()
