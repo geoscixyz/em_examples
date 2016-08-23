@@ -63,33 +63,36 @@ class DataView(object):
                 self.xyz = np.c_[self.x, self.y, z*np.ones_like(self.x)]
 
 
-    def eval_loc(self, srcLoc,obsLoc, sigvec, fvec, orientation, func):
+    def eval_loc(self, srcLoc,obsLoc, log_sigvec, log_fvec, orientation,normal, func):
         self.srcLoc=srcLoc
         self.obsLoc = obsLoc
-        self.sigvec = sigvec
-        self.fvec = fvec
+        self.log_sigvec = log_sigvec
+        self.log_fvec = log_fvec
+        self.sigvec = 10.**log_sigvec
+        self.fvec = 10.**log_fvec
         self.orientation = orientation
+        self.normal = normal
         self.func1D = func
-        self.val_xfs=np.zeros((len(sigvec),len(fvec)),dtype=complex)
-        self.val_yfs=np.zeros((len(sigvec),len(fvec)),dtype=complex)
-        self.val_zfs=np.zeros((len(sigvec),len(fvec)),dtype=complex)
+        self.val_xfs=np.zeros((len(log_sigvec),len(log_fvec)),dtype=complex)
+        self.val_yfs=np.zeros((len(log_sigvec),len(log_fvec)),dtype=complex)
+        self.val_zfs=np.zeros((len(log_sigvec),len(log_fvec)),dtype=complex)
 
-        for n in range(len(sigvec)):
+        for n in range(len(log_sigvec)):
             #for k in range(len(fvec)):
-                self.val_xfs[n],self.val_yfs[n],self.val_zfs[n]=func(self.obsLoc, srcLoc, sigvec[n], fvec, orientation=self.orientation)
+                self.val_xfs[n],self.val_yfs[n],self.val_zfs[n]=func(self.obsLoc, srcLoc, 10.**log_sigvec[n], 10.**log_fvec, orientation=self.orientation)
 
-    def eval(self, xyz, srcLoc, sig, f, orientation, func, normal="Z"):
-        val_x, val_y, val_z = func(xyz, srcLoc, sig, f, orientation=orientation)
+    def eval(self, xyz, srcLoc, sig, f, orientation, func, normal="Z",t=0.):
+        val_x, val_y, val_z = func(xyz, srcLoc, sig, f, orientation=orientation, t=t)
         return val_x, val_y, val_z
 
 
-    def eval_2D(self, srcLoc, sig, f, orientation, func):
+    def eval_2D(self, srcLoc, sig, f, orientation, func,t=0.):
         self.func2D = func
         self.srcLoc = srcLoc
         self.sig = sig
         self.f = f
         self.orientation = orientation
-        self.val_x, self.val_y, self.val_z = func(self.xyz, srcLoc, sig, f, orientation=orientation)
+        self.val_x, self.val_y, self.val_z = func(self.xyz, srcLoc, sig, f, orientation=orientation, t=t)
         if self.normal =="X" or self.normal=="x":
             Freshape = lambda v: v.reshape(self.ncy, self.ncz)
         elif self.normal =="Y" or self.normal =="y":
@@ -344,20 +347,20 @@ class DataView(object):
 
         return ax0,ax1
 
-    def plot1D_FD(self,component="real",view="x",abscisse="Conductivity",slice=None, logamp=True, ax=None,legend=True, color = 'black'):
+    def plot1D_FD(self,component="real",view="x",abscisse="Conductivity",slic=None, logamp=True, ax=None,legend=True, color = 'black'):
 
         if ax is None:
             fig = plt.figure(figsize=(6.5,5))
             ax = plt.subplot(111)
 
         slice_ind=0
-        if slice is None:
+        if slic is None:
             slice_ind=np.minimum(len(self.sigvec),len(self.fvec))/2
             if abscisse.upper() == "CONDUCTIVITY":
-                slice = self.fvec[slice_ind]
+                slic = self.log_fvec[slice_ind]
 
             elif abscisse.upper() == "FREQUENCY":
-                slice = self.sigvec[slice_ind]
+                slic = self.log_sigvec[slice_ind]
 
         pltvalue =[]
 
@@ -386,26 +389,26 @@ class DataView(object):
 
         if component.upper() == "PHASOR":
             if abscisse.upper() == "CONDUCTIVITY":
-                slice_ind = np.where( slice == self.fvec)[0][0]
+                slice_ind = np.where( slic == self.log_fvec)[0][0]
                 ax.plot(pltvalue.real[:,slice_ind],pltvalue.imag[:,slice_ind],color = color)
                 ax.set_xlabel("E field, Real part (V/m)")
                 ax.set_ylabel("E field, Imag part(V/m)")
 
                 axymin, axymax = pltvalue.imag[:,slice_ind].min(),pltvalue.imag[:,slice_ind].max()
-                if legend:    
+                if legend:
                     ax.annotate(("f =%0.5f Hz")%(self.fvec[slice_ind]),
                         xy=((pltvalue.real[:,slice_ind].min()+pltvalue.real[:,slice_ind].max())/2., axymin+(axymax-axymin)/4.), xycoords='data',
                         xytext=((pltvalue.real[:,slice_ind].min()+pltvalue.real[:,slice_ind].max())/2., axymin+(axymax-axymin)/4.), textcoords='data',
                         fontsize=14.)
 
             elif abscisse.upper() == "FREQUENCY":
-                slice_ind = np.where( slice == self.sigvec)[0][0]
+                slice_ind = np.where( slic == self.log_sigvec)[0][0]
                 ax.plot(pltvalue.real[slice_ind,:],pltvalue.imag[slice_ind,:],color = color)
                 ax.set_xlabel("E field, Real part (V/m)")
                 ax.set_ylabel("E field, Imag part(V/m)")
 
                 axymin, axymax = pltvalue.imag[slice_ind,:].min(),pltvalue.imag[slice_ind,:].max()
-                if legend:    
+                if legend:
                     ax.annotate(("$\sigma$ =%0.5f S/m")%(self.sigvec[slice_ind]),
                         xy=((pltvalue.real[slice_ind,:].min()+pltvalue.real[slice_ind,:].max())/2., axymin+(axymax-axymin)/4.), xycoords='data',
                         xytext=((pltvalue.real[slice_ind,:].min()+pltvalue.real[slice_ind,:].max())/2., axymin+(axymax-axymin)/4.), textcoords='data',
@@ -416,11 +419,11 @@ class DataView(object):
             if abscisse.upper() == "CONDUCTIVITY":
                 ax.set_xlabel("Conductivity (S/m)")
                 ax.set_xscale('log')
-                slice_ind = np.where( slice == self.fvec)[0][0]
+                slice_ind = np.where( slic == self.log_fvec)[0][0]
                 ax.plot(self.sigvec,pltvalue[:,slice_ind],color=color)
 
                 axymin, axymax = pltvalue[:,slice_ind].min(),pltvalue[:,slice_ind].max()
-                if legend:    
+                if legend:
                     ax.annotate(("f =%0.5f Hz")%(self.fvec[slice_ind]),
                         xy=(10.**((np.log10(self.sigvec.min())+np.log10(self.sigvec.max()))/2), axymin+(axymax-axymin)/4.), xycoords='data',
                         xytext=(10.**((np.log10(self.sigvec.min())+np.log10(self.sigvec.max()))/2), axymin+(axymax-axymin)/4.), textcoords='data',
@@ -429,11 +432,11 @@ class DataView(object):
             elif abscisse.upper() =="FREQUENCY":
                 ax.set_xlabel("Frequency (Hz)")
                 ax.set_xscale('log')
-                slice_ind = np.where( slice == self.sigvec)[0][0]
+                slice_ind = np.where( slic == self.log_sigvec)[0][0]
                 ax.plot(self.fvec,pltvalue[slice_ind,:],color=color)
 
                 axymin, axymax = pltvalue[slice_ind,:].min(),pltvalue[slice_ind,:].max()
-                if legend:    
+                if legend:
                     ax.annotate(("$\sigma$ =%0.5f S/m")%(self.sigvec[slice_ind]),
                         xy=(10.**((np.log10(self.fvec.min())+np.log10(self.fvec.max()))/2), axymin+(axymax-axymin)/4.), xycoords='data',
                         xytext=(10.**((np.log10(self.fvec.min())+np.log10(self.fvec.max()))/2), axymin+(axymax-axymin)/4.), textcoords='data',
