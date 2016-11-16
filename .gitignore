@@ -64,3 +64,5 @@ em_examples.sublime-project
 em_examples.sublime-workspace
 *.html
 
+*.sublime-project
+*.sublime-workspace
