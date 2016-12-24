@@ -1,4 +1,4 @@
-Mesh_4m.msh		! Mesh file
+..\Mesh_4m.msh		! Mesh file
 ..\H3D_Sphere.obs	! Obsfile in EM1DFM format
 FILE ..\Topo.topo ! Topography: NULL | FILE | NONE
 VALUE 1e-2 ! Starting conductivity model FILE xxx.con | VALUE XX | HS (best-fitting half-space)

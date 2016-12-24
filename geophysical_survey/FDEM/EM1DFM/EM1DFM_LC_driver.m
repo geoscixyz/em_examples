@@ -128,8 +128,8 @@ nstn = size(xyz,1);
 beta = ones(nstn,1)*beta;
 %% Change uncertainties
 freqs = unique(data{3}(:));
-floor = ones(length(freqs))*10;%1:length(freqs);
-pct = ones(length(freqs))*.1;
+floor = ones(length(freqs))*20;%1:length(freqs);
+pct = ones(length(freqs))*.00;
 
 for ii = 1:length(freqs)
     indx = data{3}(:)==freqs(ii);

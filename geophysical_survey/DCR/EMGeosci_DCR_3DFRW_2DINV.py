@@ -32,6 +32,7 @@ import scipy.sparse as sp
 from scipy.interpolate import griddata
 import time
 import re
+import gc
 import numpy.matlib as npm
 import scipy.interpolate as interpolation
 import os
@@ -43,11 +44,11 @@ dsep = '\\'
 # Specify survey type
 stype = 'dipole-dipole'
 dtype = 'appConductivity'
-DOI = False
-INVERT = False
+DOI = True
+INVERT = True
 # Survey parameters
-b = 20 # Tx-Rx seperation
-a = 20 # Dipole spacing
+b = 100 # Tx-Rx seperation
+a = 100 # Dipole spacing
 n = 15  # Number of Rx per Tx
 
 # Model parameters (background, sphere1, sphere2)
@@ -107,13 +108,13 @@ model = np.ones(mesh.nC) * sig[0]
 
 ## SPHERE MODEL
 ## First anomaly
-#ind = Utils.ModelBuilder.getIndicesSphere(loc[:,0],radi[0],mesh.gridCC)
-#model[ind] = sig[1]
-#
-## Second anomaly
-#ind = Utils.ModelBuilder.getIndicesSphere(loc[:,1],radi[1],mesh.gridCC)
-#model[ind] = sig[2]
-#
+ind = Utils.ModelBuilder.getIndicesSphere(loc[:,0],radi[0],mesh.gridCC)
+model[ind] = sig[1]
+
+# Second anomaly
+ind = Utils.ModelBuilder.getIndicesSphere(loc[:,1],radi[1],mesh.gridCC)
+model[ind] = sig[2]
+
 ## Create blocs for pole-dipole
 #ind = Utils.ModelBuilder.getIndicesBlock(([-150.,-50.,-20]),([-130.,50.,0]),mesh.gridCC)
 #model[ind] = sig[1]/2.5
@@ -126,32 +127,32 @@ model = np.ones(mesh.nC) * sig[0]
 
 ## BLOCK MODEL
 # Create blocs for gradient plot
-ind = Utils.ModelBuilder.getIndicesBlock(([-25.,-25.,-75]),([25.,25.,-20]),mesh.gridCC)
-model[ind] = sig[1]
-
-ind = Utils.ModelBuilder.getIndicesBlock(([-150.,-10.,-25]),([-130.,10.,0]),mesh.gridCC)
-model[ind] = sig[1]/2.5
+#ind = Utils.ModelBuilder.getIndicesBlock(([-25.,-25.,-75]),([25.,25.,-20]),mesh.gridCC)
+#model[ind] = sig[1]
 #
-ind = Utils.ModelBuilder.getIndicesBlock(([-70.,-10.,-25]),([-50.,10.,0]),mesh.gridCC)
-model[ind] = sig[2]
+#ind = Utils.ModelBuilder.getIndicesBlock(([-150.,-10.,-25]),([-130.,10.,0]),mesh.gridCC)
+#model[ind] = sig[1]/2.5
+##
+#ind = Utils.ModelBuilder.getIndicesBlock(([-70.,-10.,-25]),([-50.,10.,0]),mesh.gridCC)
+#model[ind] = sig[2]
+##
+#ind = Utils.ModelBuilder.getIndicesBlock(([110.,-10.,-25]),([130.,10.,0]),mesh.gridCC)
+#model[ind] = sig[1]/5.
 #
-ind = Utils.ModelBuilder.getIndicesBlock(([110.,-10.,-25]),([130.,10.,0]),mesh.gridCC)
-model[ind] = sig[1]/5.
-
-ind = Utils.ModelBuilder.getIndicesBlock(([-140.,-100.,-25]),([-120.,-80.,0]),mesh.gridCC)
-model[ind] = sig[1]/2.5
+#ind = Utils.ModelBuilder.getIndicesBlock(([-140.,-100.,-25]),([-120.,-80.,0]),mesh.gridCC)
+#model[ind] = sig[1]/2.5
+##
+#ind = Utils.ModelBuilder.getIndicesBlock(([-20.,-20.,-25]),([0.,0.,0]),mesh.gridCC)
+#model[ind] = sig[1]/2.5
+##
+#ind = Utils.ModelBuilder.getIndicesBlock(([125.,100.,-25]),([145,120.,0]),mesh.gridCC)
+#model[ind] = sig[1]/5
 #
-ind = Utils.ModelBuilder.getIndicesBlock(([-20.,-20.,-25]),([0.,0.,0]),mesh.gridCC)
-model[ind] = sig[1]/2.5
+#ind = Utils.ModelBuilder.getIndicesBlock(([80.,-125.,-25]),([100,-105.,0]),mesh.gridCC)
+#model[ind] = sig[1]/2.5
 #
-ind = Utils.ModelBuilder.getIndicesBlock(([125.,100.,-25]),([145,120.,0]),mesh.gridCC)
-model[ind] = sig[1]/5
-
-ind = Utils.ModelBuilder.getIndicesBlock(([80.,-125.,-25]),([100,-105.,0]),mesh.gridCC)
-model[ind] = sig[1]/2.5
-
-ind = Utils.ModelBuilder.getIndicesBlock(([-110.,80.,-25]),([-90,100.,0]),mesh.gridCC)
-model[ind] = sig[1]/2.5
+#ind = Utils.ModelBuilder.getIndicesBlock(([-110.,80.,-25]),([-90,100.,0]),mesh.gridCC)
+#model[ind] = sig[1]/2.5
 
 #Set boundary conditions
 mesh.setCellGradBC('neumann')
@@ -208,7 +209,7 @@ def plotPoles(survey,stype,axs):
 
     if stype == 'dipole-dipole':
         axs.scatter(tx[0,0],tx[0,2],c='r',s=75, marker='v')
-        axs.scatter(tx[0,1],tx[1,2],c='b',s=75, marker='v')
+        axs.scatter(tx[1,0],tx[1,2],c='b',s=75, marker='v')
     else:
         axs.scatter(tx[0],tx[2],c='r',s=75, marker='v')
 
@@ -557,18 +558,16 @@ if stype != 'gradient':
     #            cbar = fig.colorbar(ph,cax=cbarax, orientation="horizontal", ax = axs, ticks=np.linspace(vmin,vmax, 3), format="$10^{%.1f}$")
 
             #%% Compute DOI
-            DOI = np.abs(invmod[1] - invmod[0]) / np.abs(refmod[1] - refmod[0])
+            doi = np.abs(invmod[1] - invmod[0]) / np.abs(refmod[1] - refmod[0])
             # Normalize between [0 1]
-            DOI = DOI - np.min(DOI)
-            DOI = (1.- DOI/np.max(DOI))
+            doi = doi - np.min(doi)
+            doi = (1.- doi/np.max(doi))
 
-            #DOI[DOI > 0.80] = 1
-
-            DOI = np.reshape(DOI,[mesh2d.nCy,mesh2d.nCx])
+            doi = np.reshape(doi,[mesh2d.nCy,mesh2d.nCx])
 
             axs = plt.subplot(3,1,2, aspect='equal')
 
-            im1 = axs.pcolormesh(mesh2d.vectorCCx,mesh2d.vectorCCy,DOI)
+            im1 = axs.pcolormesh(mesh2d.vectorCCx,mesh2d.vectorCCy,doi)
 
             # Add colorbar
     #        cbar = fig.colorbar(im1, orientation="horizontal", ticks=np.linspace(0,1, 5), format="${%.1f}$",fraction=0.04)
@@ -596,11 +595,11 @@ if stype != 'gradient':
 
             for ss in range(survey2D.nSrc):
                 tx = survey2D.srcList[ss].loc
-                axs.scatter(tx[0],tx[2],c='k',s=25)
+                axs.scatter(tx[0][0],tx[0][2],c='k',s=25)
 
             tx = survey2D.srcList[0].loc
-            axs.scatter(tx[0],tx[2],c='r',s=75, marker='v')
-            axs.scatter(tx[3],tx[2],c='b',s=75, marker='v')
+            axs.scatter(tx[0][0],tx[0][2],c='r',s=75, marker='v')
+            axs.scatter(tx[1][0],tx[1][2],c='b',s=75, marker='v')
 
             pos =  axs.get_position()
             cbarax = fig.add_axes([pos.x0 + 0.2 , pos.y0 - 0.04,  pos.width*0.5, pos.height*0.05])  ## the parameters are the specified position you set
@@ -625,9 +624,12 @@ if stype != 'gradient':
     #        cbar = fig.colorbar(im4, orientation="horizontal", ticks=np.linspace(vmin,vmax, 3), format="$10^{%.1f}$",fraction=0.04)
     #        cbar.set_label("log(S/m)",size=10)
 
+        # PROBLEM WITH MATPLOTLIB - get_facecolor() WILL NOT HAVE THE RIGHT DIMENSION
+        # NEED TO RE-RUN AFTER THE CRASH
+        if DOI:
             rgba_plt = im4.get_facecolor()
-            rgba_plt = im4.get_facecolor()
-            rgba_plt[:,3] = mkvc(DOI.T)**2.
+
+            rgba_plt[:,3] = mkvc(doi.T)**2.
             im4.set_facecolor(rgba_plt)
             axs.set_ylim(zmin,zmax)
             axs.set_xlim(xmin,xmax)
@@ -649,11 +651,11 @@ if stype != 'gradient':
 
             for ss in range(survey2D.nSrc):
                 tx = survey2D.srcList[ss].loc
-                axs.scatter(tx[0],tx[2],c='k',s=25)
+                axs.scatter(tx[0][0],tx[0][2],c='k',s=25)
 
             tx = survey2D.srcList[0].loc
-            axs.scatter(tx[0],tx[2],c='r',s=75, marker='v')
-            axs.scatter(tx[3],tx[2],c='b',s=75, marker='v')
+            axs.scatter(tx[0][0],tx[0][2],c='r',s=75, marker='v')
+            axs.scatter(tx[1][0],tx[1][2],c='b',s=75, marker='v')
 
             pos =  axs.get_position()
             cbarax = fig.add_axes([pos.x0 + 0.2 , pos.y0 - 0.04,  pos.width*0.5, pos.height*0.05])  ## the parameters are the specified position you set

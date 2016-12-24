@@ -1,6 +1,6 @@
  PROGRAM "EM1DFM" (v1.0).
  
- Run started at 12:23:54.178, 19/12/2016.
+ Run started at 12:04:24.833, 23/12/2016.
  
  Reading inputs ...
  Filename root:                 "em1dfm".
@@ -22,12 +22,12 @@
  Level of output:               2.
  Finished reading inputs.
  
- Sounding 1 (-112.5,-112.5).
- Initial phid= 2.1862, beta= 200.00, phim= 0.0000, Phi= 2.1862.
- Iteration 1: phid= 0.89960, beta= 200.00, phim= 0.21884E-02, Phi= 1.3373.
+ Sounding 1 (150.0,150.0).
+ Initial phid= 3.0132, beta= 200.00, phim= 0.15430E-01, Phi= 6.0992.
+ Iteration 1: phid= 1.0048, beta= 200.00, phim= 0.15101E-01, Phi= 4.0251.
  One iteration completed.
  
  Conductivity model:           "em1dfm.con".
  Predicted data:               "em1dfm.prd".
  
- The End! [12:23:54.266, 19/12/2016]
+ The End! [12:04:24.904, 23/12/2016]

@@ -7,7 +7,7 @@ NONE
 1000.000000  2.000000  0.000100  2.000000  0.000100
 0.010000  1.000000
 1  ! inv type
-1.00000e+02  ! inv parameters
+1.25000e+01  ! inv parameters
 1
 DEFAULT
 DEFAULT

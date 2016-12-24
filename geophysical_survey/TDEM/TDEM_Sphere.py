@@ -198,7 +198,7 @@ def animate(jj):
                                          (sub_d), (xx, yy), method='cubic')
 
 
-        ind = jj*4
+        ind = jj*2
         T_stn[ii] = T_grid[ind]
 
 
@@ -222,6 +222,14 @@ def animate(jj):
     ax1.set_xlabel('x (m)')
     ax1.set_ylabel('$\partial B_z/\partial t$')
 
+    
+    if jj == 0:
+        global t0        
+        t0 = T_stn
+        
+    else:
+        ax2.semilogx(d_tc, t0, c='k', ls='--', lw=1)
+        
     ax2.semilogx(d_tc, T_stn, c='r', lw=3)
     ax1.set_title('Profile')
     ax2.set_xlabel('Time (s)')
@@ -239,15 +247,15 @@ def removeFrame2():
     plt.draw()
 
 anim = animation.FuncAnimation(fig, animate,
-                               frames=ntimes , interval=1000, repeat = False)
+                               frames=ntimes*3 , interval=500, repeat = False)
 #/home/dominiquef/3796_AGIC_Research/DCIP3D/MtISa
-anim.save('Time_slice.html', writer=HTMLWriter(embed_frames=True,fps=1))
+anim.save('Time_slice.html', writer=HTMLWriter(embed_frames=True,fps=10))
 
 
 # Plot
-fig2 = plt.figure(figsize=(8,8))
-ax1 = plt.subplot(2,1,1)
-ax3 = plt.subplot(2,1,2)
+fig2 = plt.figure(figsize=(10,8))
+ax1 = plt.subplot(2,2,1)
+ax3 = plt.subplot(2,2,3)
 pos =  ax3.get_position()
 ax4 = fig2.add_axes([pos.x0, pos.y0+0.1,  pos.width, pos.height*0.5])
 cb1 = fig.add_axes([pos.x0, pos.y0+0.1,  pos.width, pos.height])
@@ -271,40 +279,31 @@ def animate(ii):
     sub_d = np.log10(dpred[ii::ntimes,-1])
 
     #Create a line of data for profile
-    xx = np.linspace(locx[0,:].min(),locx[0,:].max(),nstn*10+1)
-    yy = np.ones_like(xx) * np.mean(yloc)
-
-
-    #Re-grid the data for visual
-    xx = locx[0,:]
-    yy = locy[:,0]
-
-    x, y = np.meshgrid(np.linspace(xx.min(),xx.max(),50),np.linspace(yy.min(),yy.max(),50))
+    xx = np.linspace(locx[0,:].min(),locx[0,:].max(),50)
+    yy = np.ones_like(xx) * np.mean(locy[:,0])
 
     T_grid = sp.interpolate.griddata(np.c_[xloc,yloc],
-                                     (sub_d), (x, y), method='cubic')
+                                     (sub_d), (xx, yy), method='cubic')
 
-    ax1 = plt.subplot(2,1,1)
 
-    vminD, vmaxD = np.floor(T_grid.min()*10)/10-0.1, np.ceil(T_grid.max()*10)/10+0.1
-    im1 = plt.contourf(x[0,:],y[:,0],T_grid,25, clim=(vminD,vmaxD), vmin=vminD, vmax=vmaxD)
-    plt.scatter(mkvc(locx),mkvc(locy),c='k')
-    ax1.set_xticks([-xlim,0,xlim])
-    ax1.set_yticks([-xlim,0,xlim])
-    ax1.set_aspect('equal')
-    ax1.set_ylabel('Northing (m)')
-    ax1.set_xlabel('Easting (m)')
-    plt.title('$\partial B_z/\partial t$')
-    pos =  ax1.get_position()
-    ax1.set_position([pos.x0+0.1, pos.y0+0.15,  pos.width*0.75, pos.height*0.75])
-    cb1 = fig2.add_axes([pos.x0+0.55, pos.y0+0.2,  pos.width*0.04, pos.height*0.4])
-    cbar = plt.colorbar(im1,orientation="vertical",ticks=np.linspace(T_grid.min(),T_grid.max(), 3), cax = cb1, format="%.2f")
-#    cbar.ax.set_yticklabels([vminD, np.mean([vminD,vmaxD]), vmaxD], format="$%.1f$")
 
-    ax3 = plt.subplot(2,1,2)
+    ax1 = plt.subplot(2,2,1)
+    ax1.plot(xx,T_grid,c='k', lw=2)
+    ax1.set_xlim([-xlim-10,xlim+10])
+    ax1.set_ylim([-12,-4])
+    ax1.grid(True)
+    ax1.set_ylabel('$\partial B_z/\partial t$')
+#    ax4.set_ylim([np.min(np.c_[R_grid,np.abs(I_grid)])*0.5,np.max(np.c_[R_grid,np.abs(I_grid)])*1.5])
+#    ax4.legend(['$\partial B_z/\partial t$',])
+    ax1.set_title('Profile: N=0 m , Time: '+ str(d_tc[ii]*1e+3) + ' ms')
+    ax1.set_xticklabels([])
+
+
+    
+    ax3 = plt.subplot(2,2,3)
 #    ps = mesh.plotSlice(np.log10(model),normal = 'Y', ind=nC, ax=ax3, pcolorOpts={'cmap':'RdBu_r'})
 
-    ax3.contourf(X[:,nC,:].T,Z[:,nC,:].T,ptemp,20,vmin=vmin, vmax=vmax, clim=(vmin,vmax), cmap='RdBu_r')
+    ax3.contourf(X[:,nC,:].T,Z[:,nC,:].T,ptemp,20,vmin=vmin, vmax=vmax, clim=(vmin,vmax), cmap='jet')
     plt.contour(X[:,nC,:].T,Z[:,nC,:].T,ptemp,1, colors='k', linestyles='solid')
     plt.scatter(mkvc(locx),mkvc(locz),c='r')
     ax3.set_title('')
@@ -322,28 +321,41 @@ def animate(ii):
     ax3.text(loc[0]-50,loc[1]-50,"$10^{-2}$" + ' S/m ',
                  horizontalalignment='center', verticalalignment='top', color='w')
 
-    #Create a line of data for profile
-    xx = np.linspace(locx[0,:].min(),locx[0,:].max(),50)
-    yy = np.ones_like(xx) * np.mean(locy[:,0])
-
-    T_grid = sp.interpolate.griddata(np.c_[xloc,yloc],
-                                     (sub_d), (xx, yy), method='cubic')
-
 
     pos =  ax3.get_position()
-    ax3.set_position([pos.x0, pos.y0-0.05,  pos.width, pos.height])
+    ax3.set_position([pos.x0, pos.y0+0.1,  pos.width, pos.height])
     ax3.set_xlabel('Easting (m)')
-    ax4 = fig2.add_axes([pos.x0, pos.y0+0.3,  pos.width, pos.height*0.4])
+    
+    pos =  ax1.get_position()
+    ax4 = fig2.add_axes([pos.x0+0.45, pos.y0,  pos.width*0.75, pos.height*0.75])
 
-    ax4.plot(xx,T_grid,c='k', lw=2)
-    ax4.set_xlim([-xlim-10,xlim+10])
-    ax4.set_ylim([-12,-4])
-    ax4.grid(True)
-    ax4.set_ylabel('$\partial B_z/\partial t$')
-#    ax4.set_ylim([np.min(np.c_[R_grid,np.abs(I_grid)])*0.5,np.max(np.c_[R_grid,np.abs(I_grid)])*1.5])
-#    ax4.legend(['$\partial B_z/\partial t$',])
-    ax4.set_title('Profile: N=0 m - Time: '+ str(d_tc[ii]*1e+3) + ' ms')
-    ax4.set_xticklabels([])
+    #Re-grid the data for visual
+    xx = locx[0,:]
+    yy = locy[:,0]
+
+    x, y = np.meshgrid(np.linspace(xx.min(),xx.max(),50),np.linspace(yy.min(),yy.max(),50))
+
+    T_grid = sp.interpolate.griddata(np.c_[xloc,yloc],
+                                     (sub_d), (x, y), method='cubic')
+
+    
+
+    vminD, vmaxD = np.floor(T_grid.min()*10)/10-0.2, np.ceil(T_grid.max()*10)/10+0.2
+    im1 = plt.contourf(x[0,:],y[:,0],T_grid,25, clim=(vminD,vmaxD), vmin=vminD, vmax=vmaxD, cmap='jet')
+    plt.scatter(mkvc(locx),mkvc(locy),c='k')
+    plt.plot([x[0,0],x[0,-1]],np.zeros(2), ls='--', c= 'k')
+    ax4.set_xticks([-xlim,0,xlim])
+    ax4.set_yticks([-xlim,0,xlim])
+    ax4.set_yticklabels(map(str, map(int, [-xlim,0,xlim])),size=12,rotation='vertical')
+    ax4.set_aspect('equal')
+    ax4.set_ylabel('Northing (m)')
+    ax4.set_xlabel('Easting (m)')
+    plt.title('$\partial B_z/\partial t$')
+    
+#    ax4.set_position
+    cb1 = fig2.add_axes([pos.x0+0.5, pos.y0-0.1,  pos.width*0.4, pos.height*0.04])
+    cbar = plt.colorbar(im1,orientation="horizontal",ticks=np.linspace(T_grid.min(),T_grid.max(), 3), cax = cb1, format="%.2f")
+#    cbar.ax.set_yticklabels([vminD, np.mean([vminD,vmaxD]), vmaxD], format="$%.1f$")
 
 def removeFrame():
     global ax1, ax3, ax4, fig2
@@ -390,7 +402,7 @@ fid.close()
 
 dpred1D = read_h3d_pred('Pre1D_2_E3Dpre.pre')
 
-fig2 = plt.figure(figsize=(8,8))
+fig2 = plt.figure(figsize=(10,8))
 ax1 = plt.subplot(2,2,1)
 ax2 = plt.subplot(2,2,2)
 ax3 = plt.subplot(2,1,2)
@@ -423,7 +435,55 @@ def animate(ii):
     
     sub_pred = np.log10(dpred1D[ii::ntimes,-1])
 
+
+                                 
     #Create a line of data for profile
+    xx = np.linspace(locx[0,:].min(),locx[0,:].max(),50)
+    yy = np.ones_like(xx) * np.mean(locy[:,0])
+
+    T_grid = sp.interpolate.griddata(np.c_[xloc,yloc],
+                                     (sub_d), (xx, yy), method='cubic')
+                                     
+    T_grid_pred = sp.interpolate.griddata(np.c_[xloc,yloc],
+                                     (sub_pred), (xx, yy), method='cubic')
+                                     
+    ax4 = plt.subplot(2,2,1)
+    
+    ax4.plot(xx,T_grid,c='k', lw=2)
+    ax4.plot(xx,T_grid,c='r', lw=2)
+    ax4.set_xlim([-xlim-10,xlim+10])
+    ax4.set_ylim([-12,-4])
+    ax4.grid(True)
+    ax4.set_ylabel('$\partial B_z/\partial t$')
+#    ax4.set_ylim([np.min(np.c_[R_grid,np.abs(I_grid)])*0.5,np.max(np.c_[R_grid,np.abs(I_grid)])*1.5])
+    ax4.legend(['$\partial B_z^{obs}/\partial t$','$\partial B_z^{pred}/\partial t$'])
+    ax4.set_title('North = 0 m - Time: '+ str(d_tc[ii]*1e+3) + ' ms')
+    ax4.set_xticklabels([])
+          
+    ax3 = plt.subplot(2,2,3)
+#    ps = mesh.plotSlice(np.log10(model),normal = 'Y', ind=nC, ax=ax3, pcolorOpts={'cmap':'RdBu_r'})
+
+    im2 = ax3.contourf(X[:,indy,:].T,Z[:,indy,:].T,ptemp,20,vmin=vmin, vmax=vmax, clim=(vmin,vmax), cmap='jet')
+    plt.scatter(mkvc(locx),mkvc(locz),c='r')
+    
+    pos =  ax3.get_position()
+    ax3.set_position([pos.x0, pos.y0+0.1,  pos.width, pos.height])
+    cb1 = fig2.add_axes([pos.x0+0.12, pos.y0+0.075,  pos.width*0.3, pos.height*0.05])
+    plt.colorbar(im2,orientation="horizontal",ticks=np.linspace(vmin,vmax, 3), cax = cb1, format="$10^{%.1f}$", label='S/m')
+#    cbar.ax.set_yticklabels([vminD, np.mean([vminD,vmaxD]), vmaxD], format="$%.1f$")
+    ax3.set_xlabel('Easting (m)')
+    ax3.set_title('')
+    ax3.set_aspect('equal')
+    ax3.set_xlim([-xlim-10,xlim+10])
+    ax3.set_ylim([-100,30])
+    plt.show()
+
+    
+
+    pos =  ax4.get_position()
+#    ax3.set_position([pos.x0, pos.y0-0.05,  pos.width, pos.height])
+        #Create a line of data for profile
+    ax1 = fig2.add_axes([pos.x0+0.45, pos.y0+0.1,  pos.width*0.75, pos.height*0.75])
     xx = np.linspace(locx[0,:].min(),locx[0,:].max(),nstn*10+1)
     yy = np.ones_like(xx) * np.mean(yloc)
 
@@ -438,80 +498,45 @@ def animate(ii):
                                      (sub_d), (x, y), method='cubic')
 
     T_grid_pred = sp.interpolate.griddata(np.c_[xloc,yloc],
-                                 (sub_pred), (x, y), method='cubic')
-                                     
-    ax1 = plt.subplot(2,2,1)
+                                 (sub_pred), (x, y), method='cubic')                
+#    ax1 = plt.subplot(2,2,1)
 
-    vminD, vmaxD = np.floor(T_grid.min()*10)/10-0.1, np.ceil(T_grid.max()*10)/10+0.1
-    im1 = plt.contourf(x[0,:],y[:,0],T_grid,25, clim=(vminD,vmaxD), vmin=vminD, vmax=vmaxD)
+    vminD, vmaxD = np.floor(T_grid.min()*10)/10-0.2, np.ceil(T_grid.max()*10)/10+0.2
+    im1 = plt.contourf(x[0,:],y[:,0],T_grid,25, clim=(vminD,vmaxD), vmin=vminD, vmax=vmaxD, cmap='jet')
     plt.scatter(mkvc(locx),mkvc(locy),c='k')
-    ax1.set_xticks([-xlim,0,xlim])
+    ax1.set_xticks([])
     ax1.set_yticks([-xlim,0,xlim])
     ax1.set_aspect('equal')
     ax1.set_ylabel('Northing (m)')
-    ax1.set_xlabel('Easting (m)')
     plt.title('$\partial B_z^{obs}/\partial t$')
-    pos =  ax1.get_position()
-    ax1.set_position([pos.x0, pos.y0+0.1,  pos.width*0.75, pos.height*0.75])
-    cb1 = fig2.add_axes([pos.x0+0.3, pos.y0+0.15,  pos.width*0.04, pos.height*0.4])
-    plt.colorbar(im1,orientation="vertical",ticks=np.linspace(T_grid.min(),T_grid.max(), 3), cax = cb1, format="%.2f", label='Volts')
+
+    
+#    ax1.set_position([pos.x0, pos.y0+0.2,  pos.width*0.75, pos.height*0.75])
+#    cb1 = fig2.add_axes([pos.x0+0.3, pos.y0+0.15,  pos.width*0.04, pos.height*0.4])
+#    plt.colorbar(im1,orientation="vertical",ticks=np.linspace(T_grid.min(),T_grid.max(), 3), cax = cb1, format="%.2f", label='Volts')
 #    cbar.ax.set_yticklabels([vminD, np.mean([vminD,vmaxD]), vmaxD], format="$%.1f$")
 
-    ax2 = plt.subplot(2,2,2)
-    plt.contourf(x[0,:],y[:,0],T_grid_pred,25, clim=(vminD,vmaxD), vmin=vminD, vmax=vmaxD)
+
+    
+    ax2 = fig2.add_axes([pos.x0+0.45, pos.y0-0.225,  pos.width*0.75, pos.height*0.75])
+
+    plt.contourf(x[0,:],y[:,0],T_grid_pred,25, clim=(vminD,vmaxD), vmin=vminD, vmax=vmaxD, cmap='jet')
     plt.scatter(mkvc(locx),mkvc(locy),c='k')
     ax2.set_xticks([-xlim,0,xlim])
-    ax2.set_yticks([])
+    ax2.set_yticks([-xlim,0,xlim])
     ax2.set_aspect('equal')
-#    ax2.set_ylabel('Northing (m)')
+    ax2.set_ylabel('Northing (m)')
     ax2.set_xlabel('Easting (m)')
     plt.title('$\partial B_z^{pred}/\partial t$')
-    pos =  ax2.get_position()
-    ax2.set_position([pos.x0+0.05, pos.y0+0.1,  pos.width*0.75, pos.height*0.75])
+#    pos =  ax2.get_position()
+#    ax2.set_position([pos.x0+0.05, pos.y0+0.1,  pos.width*0.75, pos.height*0.75])
+    cb1 = fig2.add_axes([pos.x0+0.51, pos.y0-0.325,  pos.width*0.4, pos.height*0.04])
+    cbar = plt.colorbar(im1,orientation="horizontal",ticks=np.linspace(T_grid.min(),T_grid.max(), 3), cax = cb1, format="%.2f", label='Volt')
     
     
-    ax3 = plt.subplot(2,1,2)
-#    ps = mesh.plotSlice(np.log10(model),normal = 'Y', ind=nC, ax=ax3, pcolorOpts={'cmap':'RdBu_r'})
-
-    im2 = ax3.contourf(X[:,indy,:].T,Z[:,indy,:].T,ptemp,20,vmin=vmin, vmax=vmax, clim=(vmin,vmax), cmap='RdBu_r')
-    plt.scatter(mkvc(locx),mkvc(locz),c='r')
+#    ax4 = fig2.add_axes([pos.x0, pos.y0+0.3,  pos.width, pos.height*0.4])
     
-    pos =  ax3.get_position()
-    cb1 = fig2.add_axes([pos.x0+0.27, pos.y0+0.05,  pos.width*0.3, pos.height*0.05])
-    plt.colorbar(im2,orientation="horizontal",ticks=np.linspace(vmin,vmax, 3), cax = cb1, format="$10^{%.1f}$", label='S/m')
-#    cbar.ax.set_yticklabels([vminD, np.mean([vminD,vmaxD]), vmaxD], format="$%.1f$")
-    
-    ax3.set_title('')
-    ax3.set_aspect('equal')
-    ax3.set_xlim([-xlim-10,xlim+10])
-    ax3.set_ylim([-100,30])
-    plt.show()
 
-    #Create a line of data for profile
-    xx = np.linspace(locx[0,:].min(),locx[0,:].max(),50)
-    yy = np.ones_like(xx) * np.mean(locy[:,0])
-
-    T_grid = sp.interpolate.griddata(np.c_[xloc,yloc],
-                                     (sub_d), (xx, yy), method='cubic')
-                                     
-    T_grid_pred = sp.interpolate.griddata(np.c_[xloc,yloc],
-                                     (sub_pred), (xx, yy), method='cubic')
-
-    pos =  ax3.get_position()
-    ax3.set_position([pos.x0, pos.y0-0.05,  pos.width, pos.height])
-    ax3.set_xlabel('Easting (m)')
-    ax4 = fig2.add_axes([pos.x0, pos.y0+0.3,  pos.width, pos.height*0.4])
-
-    ax4.plot(xx,T_grid,c='k', lw=2)
-    ax4.plot(xx,T_grid,c='r', lw=2)
-    ax4.set_xlim([-xlim-10,xlim+10])
-    ax4.set_ylim([-12,-4])
-    ax4.grid(True)
-    ax4.set_ylabel('$\partial B_z/\partial t$')
-#    ax4.set_ylim([np.min(np.c_[R_grid,np.abs(I_grid)])*0.5,np.max(np.c_[R_grid,np.abs(I_grid)])*1.5])
-    ax4.legend(['Observed','Predicted'])
-    ax4.set_title('Profile: N=0 m - Time: '+ str(d_tc[ii]*1e+3) + ' ms')
-    ax4.set_xticklabels([])
 
 def removeFrame():
     global ax1,ax2, ax3, ax4, fig2
