@@ -22,21 +22,21 @@ from .Base import widgetify
 # Mesh, sigmaMap can be globals global
 npad = 15
 growrate = 2.
-cs = 0.5
+cs = 5  # 0.5
 hx = [(cs, npad, -growrate), (cs, 200), (cs, npad, growrate)]
 hy = [(cs, npad, -growrate), (cs, 100)]
 mesh = Mesh.TensorMesh([hx, hy], "CN")
 idmap = Maps.IdentityMap(mesh)
 sigmaMap = idmap
-dx = 5
-xr = np.arange(-40, 41, dx)
+dx = 5 * 10
+xr = np.arange(-40*10, 41, dx)
 dxr = np.diff(xr)
-xmin = -40.
-xmax = 40.
-ymin = -40.
-ymax = 5.
-xylim = np.c_[[xmin,ymin],[xmax,ymax]]
-indCC, meshcore = ExtractCoreMesh(xylim,mesh)
+xmin = -40. * 10
+xmax = 40. * 10
+ymin = -40. * 10
+ymax = 5. * 10
+xylim = np.c_[[xmin, ymin], [xmax, ymax]]
+indCC, meshcore = ExtractCoreMesh(xylim, mesh)
 indx = (
     (mesh.gridFx[:, 0] >= xmin) & (mesh.gridFx[:, 0] <= xmax) &
     (mesh.gridFx[:, 1] >= ymin) & (mesh.gridFx[:, 1] <= ymax)
@@ -48,7 +48,9 @@ indy = (
 indF = np.concatenate((indx, indy))
 
 
-def model_fields(A, B, zcLayer, dzLayer, xc, zc, r, sigLayer, sigTarget, sigHalf):
+def model_fields(
+    A, B, zcLayer, dzLayer, xc, zc, r, sigLayer, sigTarget, sigHalf
+):
     # Create halfspace model
     mhalf = sigHalf*np.ones([mesh.nC, ])
     # Add layer to model
@@ -372,8 +374,8 @@ def plot_Surface_Potentials(
     xSurface, phiPrimSurface, phiScalePrim = get_Surface_Potentials(
         survey, src, primary_field
     )
-    ylim = np.r_[-1., 1.]*np.max(np.abs(phiTotalSurface))
-    xlim = np.array([-40,40])
+    ylim = 0.45*np.r_[-1, 1]*np.max(np.abs(phiTotalSurface))
+    xlim = np.array([xmin, xmax])
 
     if(survey == "Dipole-Pole" or survey == "Pole-Pole"):
         MInd = np.where(xSurface == M)
@@ -426,7 +428,7 @@ def plot_Surface_Potentials(
     if(survey == "Dipole-Pole" or survey == "Pole-Pole"):
         ax[0].plot(M, VM, 'o', color='k')
 
-        xytextM = (M+0.5, np.max([np.min([VM, ylim.max()]), ylim.min()])+0.5)
+        xytextM = (M + 5, np.max([np.min([VM, ylim.max()]), ylim.min()])+ 5)
         ax[0].annotate(
             '%2.1e' % (VM), xy=xytextM, xytext=xytextM, fontsize=labelsize
         )
@@ -435,8 +437,8 @@ def plot_Surface_Potentials(
         ax[0].plot(M, VM, 'o', color='k')
         ax[0].plot(N, VN, 'o', color='k')
 
-        xytextM = (M+0.5, np.max([np.min([VM, ylim.max()]), ylim.min()])+0.5)
-        xytextN = (N+0.5, np.max([np.min([VN, ylim.max()]), ylim.min()])+0.5)
+        xytextM = (M+5, np.max([np.min([VM, ylim.max()]), ylim.min()])+5)
+        xytextN = (N+5, np.max([np.min([VN, ylim.max()]), ylim.min()])+5)
         ax[0].annotate(
             '%2.1e' % (VM), xy=xytextM, xytext=xytextM, fontsize=labelsize
         )
@@ -448,13 +450,13 @@ def plot_Surface_Potentials(
 
     props = dict(boxstyle='round', facecolor='grey', alpha=0.4)
     ax[0].text(
-        xlim.max()+1, ylim.max()-0.1*ylim.max(),
+        xlim.max()+10, ylim.max()-0.1*ylim.max(),
         '$\\rho_a$ = %2.2f' % (G2D*calculateRhoA(survey, VM, VN, A, B, M, N)),
         verticalalignment='bottom', bbox=props, fontsize=labelsize
     )
 
     ax[0].legend(
-        ['Model Potential', 'Layered Earth Potential'], loc=3,
+        ['Model Potential', 'Halfspace Potential'], loc=3,
         fontsize=labelsize
     )
 
@@ -467,9 +469,9 @@ def plot_Surface_Potentials(
         ind = indCC
 
         formatter = "%.1e"
-        pcolorOpts = {"cmap":"jet_r"}
+        pcolorOpts = {"cmap": "jet_r"}
         if Scale == 'Log':
-            pcolorOpts = {'norm':matplotlib.colors.LogNorm(),"cmap":"jet_r"}
+            pcolorOpts = {'norm': matplotlib.colors.LogNorm(), "cmap": "jet_r"}
 
         if Type == 'Total':
             u = 1./(sigmaMap*mtrue)
@@ -651,7 +653,7 @@ def plot_Surface_Potentials(
         eps = 0.
     dat = meshcore.plotImage(
         u[ind]+eps, vType = xtype, ax=ax[1], grid=False, view=view,
-        streamOpts=streamOpts, pcolorOpts = pcolorOpts
+        streamOpts=streamOpts, pcolorOpts=pcolorOpts, mask_stream_below=1e-3
     ) # gridOpts={'color':'k', 'alpha':0.5}
 
     # Get cylinder outline
@@ -709,10 +711,10 @@ def plot_Surface_Potentials(
         ax[1].plot(M, 1., marker='^', color='yellow', markersize=labelsize)
         ax[1].plot(N, 1., marker='^', color='green', markersize=labelsize)
 
-        xytextA1 = (A-0.5, 2.)
-        xytextB1 = (B-0.5, 2.)
-        xytextM1 = (M-0.5, 2.)
-        xytextN1 = (N-0.5, 2.)
+        xytextA1 = (A-5, 10.)
+        xytextB1 = (B-5, 10.)
+        xytextM1 = (M-5, 10.)
+        xytextN1 = (N-5, 10.)
 
         ax[1].annotate('A', xy=xytextA1, xytext=xytextA1, fontsize=labelsize)
         ax[1].annotate('B', xy=xytextB1, xytext=xytextB1, fontsize=labelsize)
@@ -724,9 +726,9 @@ def plot_Surface_Potentials(
         ax[1].plot(M, 1., marker='^', color='yellow', markersize=labelsize)
         ax[1].plot(N, 1., marker='^', color='green', markersize=labelsize)
 
-        xytextA1 = (A-0.5, 2.)
-        xytextM1 = (M-0.5, 2.)
-        xytextN1 = (N-0.5, 2.)
+        xytextA1 = (A-5, 10.)
+        xytextM1 = (M-5, 10.)
+        xytextN1 = (N-5, 10.)
         ax[1].annotate('A', xy=xytextA1, xytext=xytextA1, fontsize=labelsize)
         ax[1].annotate('M', xy=xytextM1, xytext=xytextM1, fontsize=labelsize)
         ax[1].annotate('N', xy=xytextN1, xytext=xytextN1, fontsize=labelsize)
@@ -736,9 +738,9 @@ def plot_Surface_Potentials(
         ax[1].plot(B, 1., marker='v', color='blue', markersize=labelsize)
         ax[1].plot(M, 1., marker='^', color='yellow', markersize=labelsize)
 
-        xytextA1 = (A-0.5, 2.)
-        xytextB1 = (B-0.5, 2.)
-        xytextM1 = (M-0.5, 2.)
+        xytextA1 = (A-5, 10.)
+        xytextB1 = (B-5, 10.)
+        xytextM1 = (M-5, 10.)
         ax[1].annotate('A', xy=xytextA1, xytext=xytextA1, fontsize=labelsize)
         ax[1].annotate('B', xy=xytextB1, xytext=xytextB1, fontsize=labelsize)
         ax[1].annotate('M', xy=xytextM1, xytext=xytextM1, fontsize=labelsize)
@@ -746,8 +748,8 @@ def plot_Surface_Potentials(
         ax[1].plot(A, 1., marker='v', color='red', markersize=labelsize)
         ax[1].plot(M, 1., marker='^', color='yellow', markersize=labelsize)
 
-        xytextA1 = (A-0.5, 2.)
-        xytextM1 = (M-0.5, 2.)
+        xytextA1 = (A-5, 10.)
+        xytextM1 = (M-5, 10.)
         ax[1].annotate('A', xy=xytextA1, xytext=xytextA1, fontsize=labelsize)
         ax[1].annotate('M', xy=xytextM1, xytext=xytextM1, fontsize=labelsize)
 
@@ -800,14 +802,78 @@ def plot_Surface_Potentials(
 
     cb.ax.tick_params(labelsize=ticksize)
     cb.set_label(label, fontsize=labelsize)
-    ax[1].set_xlim([-40., 40.])
-    ax[1].set_ylim([-40., 5.])
+    ax[1].set_xlim([-400., 400.])
+    ax[1].set_ylim([-400., 50.])
     ax[1].set_aspect('equal')
 
     plt.show()
 
 
 def ResLayer_app():
+    # app = widgetify(
+    #     plot_Surface_Potentials,
+    #     survey=ToggleButtons(
+    #         options=[
+    #             'Dipole-Dipole', 'Dipole-Pole', 'Pole-Dipole', 'Pole-Pole'
+    #         ],
+    #         value='Dipole-Dipole'
+    #     ),
+    #     zcLayer=FloatSlider(
+    #         min=-100., max=0., step=10., value=-100., continuous_update=False,
+    #         description="$zc_{layer}$"
+    #     ),
+    #     dzLayer=FloatSlider(
+    #         min=0.5, max=5., step=0.5, value=1., continuous_update=False,
+    #         description="$dz_{layer}$"
+    #     ),
+    #     rhoLayer=FloatText(
+    #         min=1e-8, max=1e8, value=5000., continuous_update=False,
+    #         description='$\\rho_{2}$'
+    #     ),
+    #     xc=FloatSlider(
+    #         min=-30., max=30., step=1., value=0., continuous_update=False),
+    #     zc=FloatSlider(
+    #         min=-30., max=-15., step=0.5, value=-25., continuous_update=False
+    #     ),
+    #     r=FloatSlider(
+    #         min=1., max=10., step=0.5, value=5., continuous_update=False
+    #     ),
+    #     rhoHalf=FloatText(
+    #         min=1e-8, max=1e8, value=500., continuous_update=False,
+    #         description='$\\rho_{1}$'
+    #     ),
+    #     rhoTarget=FloatText(
+    #         min=1e-8, max=1e8, value=500., continuous_update=False,
+    #         description='$\\rho_{3}$'
+    #     ),
+    #     A=FloatSlider(
+    #         min=-30.25, max=30.25, step=0.5, value=-30.25,
+    #         continuous_update=False
+    #     ),
+    #     B=FloatSlider(
+    #         min=-30.25, max=30.25, step=0.5, value=30.25,
+    #         continuous_update=False
+    #     ),
+    #     M=FloatSlider(
+    #         min=-30.25, max=30.25, step=0.5, value=-10.25,
+    #         continuous_update=False
+    #     ),
+    #     N=FloatSlider(
+    #         min=-30.25, max=30.25, step=0.5, value=10.25,
+    #         continuous_update=False
+    #     ),
+    #     Field=ToggleButtons(
+    #         options=['Model', 'Potential', 'E', 'J', 'Charge', 'Sensitivity'],
+    #         value='Model'
+    #     ),
+    #     Type=ToggleButtons(
+    #         options=['Total', 'Primary', 'Secondary'], value='Total'
+    #     ),
+    #     Scale=ToggleButtons(
+    #         options=['Linear', 'Log'], value='Linear'
+    #     )
+    # )
+
     app = widgetify(
         plot_Surface_Potentials,
         survey=ToggleButtons(
@@ -817,47 +883,47 @@ def ResLayer_app():
             value='Dipole-Dipole'
         ),
         zcLayer=FloatSlider(
-            min=-10., max=0., step=1., value=-10., continuous_update=False,
+            min=-100., max=0., step=10., value=-60., continuous_update=False,
             description="$zc_{layer}$"
         ),
         dzLayer=FloatSlider(
-            min=0.5, max=5., step=0.5, value=1., continuous_update=False,
+            min=5, max=500., step=5, value=40., continuous_update=False,
             description="$dz_{layer}$"
         ),
         rhoLayer=FloatText(
-            min=1e-8, max=1e8, value=5000., continuous_update=False,
+            min=1e-8, max=1e8, value=500., continuous_update=False,
             description='$\\rho_{2}$'
         ),
         xc=FloatSlider(
-            min=-30., max=30., step=1., value=0., continuous_update=False),
+            min=-300., max=300., step=10., value=0., continuous_update=False),
         zc=FloatSlider(
-            min=-30., max=-15., step=0.5, value=-25., continuous_update=False
+            min=-300., max=-50., step=5, value=-170., continuous_update=False
         ),
         r=FloatSlider(
-            min=1., max=10., step=0.5, value=5., continuous_update=False
+            min=10., max=200., step=5, value=70., continuous_update=False
         ),
         rhoHalf=FloatText(
             min=1e-8, max=1e8, value=500., continuous_update=False,
             description='$\\rho_{1}$'
         ),
         rhoTarget=FloatText(
-            min=1e-8, max=1e8, value=500., continuous_update=False,
+            min=1e-8, max=1e8, value=5., continuous_update=False,
             description='$\\rho_{3}$'
         ),
         A=FloatSlider(
-            min=-30.25, max=30.25, step=0.5, value=-30.25,
+            min=-302.5, max=302.5, step=5, value=-302.5,
             continuous_update=False
         ),
         B=FloatSlider(
-            min=-30.25, max=30.25, step=0.5, value=30.25,
+            min=-302.5, max=302.5, step=5., value=302.5,
             continuous_update=False
         ),
         M=FloatSlider(
-            min=-30.25, max=30.25, step=0.5, value=-10.25,
+            min=-302.5, max=302.5, step=5., value=-102.5,
             continuous_update=False
         ),
         N=FloatSlider(
-            min=-30.25, max=30.25, step=0.5, value=10.25,
+            min=-302.5, max=302.5, step=5, value=102.5,
             continuous_update=False
         ),
         Field=ToggleButtons(
