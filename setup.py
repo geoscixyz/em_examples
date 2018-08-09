@@ -30,10 +30,10 @@ with open('README.md', 'r') as f:
     LONG_DESCRIPTION = f.read()
 
 setup(
-    name = 'em_examples',
-    version = '0.0.30',
-    packages = find_packages(),
-    install_requires = [
+    name='em_examples',
+    version='0.0.30',
+    packages=find_packages(),
+    install_requires=[
         'future',
         'numpy>=1.7',
         'scipy>=0.13',
@@ -41,21 +41,22 @@ setup(
         'Pillow',
         'requests',
         'ipywidgets',
+        'seaborn',
         'SimPEG>=0.4.1',
         'jupyter',
         'empymod',
         'deepdish',
         'pymatsolver>=0.1.2'
     ],
-    author = 'Lindsey Heagy',
-    author_email = 'lheagy@eos.ubc.ca',
-    description = 'em_examples',
-    long_description = LONG_DESCRIPTION,
-    keywords = 'geophysics, electromagnetics',
-    url = 'http://em.geosci.xyz',
-    download_url = 'https://github.com/geoscixyz/em_examples',
+    author='Lindsey Heagy',
+    author_email='lheagy@eos.ubc.ca',
+    description='em_examples',
+    long_description=LONG_DESCRIPTION,
+    keywords='geophysics, electromagnetics',
+    url='http://em.geosci.xyz',
+    download_url='https://github.com/geoscixyz/em_examples',
     classifiers=CLASSIFIERS,
-    platforms = ['Windows', 'Linux', 'Solaris', 'Mac OS-X', 'Unix'],
+    platforms=['Windows', 'Linux', 'Solaris', 'Mac OS-X', 'Unix'],
     license='MIT License',
-    use_2to3 = False,
+    use_2to3=False,
 )

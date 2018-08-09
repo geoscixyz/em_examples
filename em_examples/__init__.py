@@ -41,6 +41,7 @@ if sys.version_info[0] > 2:
     from . import MarineCSEM1D
 from . import TDEMGroundedSource
 from . import LinearInversion
+from . import GMM_creation
 
 
 from matplotlib import rcParams
