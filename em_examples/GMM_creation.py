@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import cm
 from scipy.stats import multivariate_normal
 import copy
 import seaborn
@@ -8,8 +9,6 @@ import ipywidgets
 from .Base import widgetify
 
 seaborn.set()
-matplotlib.rcParams['font.size'] = 14
-
 
 def rotationmatrix(angle):
     rad = np.radians(angle)
@@ -189,7 +188,7 @@ def GMM2D_Slider_wrapper(
 
 def GMM2D_Slider_app():
     app = widgetify(
-        GMM2D_Slider_app,
+        GMM2D_Slider_wrapper,
         manual=False,
         mean00=ipywidgets.FloatSlider(
             value=-5,
