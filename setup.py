@@ -43,6 +43,7 @@ setup(
         'ipywidgets',
         'seaborn',
         'SimPEG>=0.4.1',
+        'scikit-learn',
         'jupyter',
         'empymod',
         'deepdish',

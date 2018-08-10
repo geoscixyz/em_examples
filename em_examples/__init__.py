@@ -42,6 +42,7 @@ if sys.version_info[0] > 2:
 from . import TDEMGroundedSource
 from . import LinearInversion
 from . import GMM_creation
+from . import gmm_mapem
 
 
 from matplotlib import rcParams
