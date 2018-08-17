@@ -15,6 +15,7 @@ from .gmmutils import *
 
 n = 2
 
+
 def GMM1D_reference(mean0, mean1, std0, std1, weight0):
 
     means = np.r_[mean0, mean1]
@@ -121,13 +122,6 @@ def GMM1D_define_reference_app():
         ),
     )
 
-    app.clf = GMM1D_reference(
-        app.children[0].value,
-        app.children[1].value,
-        app.children[2].value,
-        app.children[3].value,
-        app.children[4].value)
-
     return app
 
 
@@ -185,7 +179,8 @@ def GMM1D_MAPEM(clfref, mean0, mean1, std0, std1, weight0, alpha, kappa, nu):
         x[:, np.newaxis])), linewidth=2., linestyle='-', color='k', label='$\Theta_{MAP-EM}$')
     ax.plot(x, np.exp(clf.score_samples(
         x[:, np.newaxis])), linewidth=1., linestyle='-', color='blue', label='$\Theta_{samples}$')
-    ax.hist(xupdate, bins=100, density=True, color='blue', alpha=0.3, label='Samples set')
+    ax.hist(xupdate, bins=100, density=True,
+            color='blue', alpha=0.3, label='Samples set')
     ax.legend(fontsize=16, loc=0)
     ax.set_xlabel('Physical Property', fontsize=20)
     ax.set_ylabel('Probability Density', fontsize=20)
@@ -195,7 +190,14 @@ def GMM1D_MAPEM(clfref, mean0, mean1, std0, std1, weight0, alpha, kappa, nu):
     plt.show()
 
 
-def GMM1D_MAPEM_app(clfref):
+def GMM1D_MAPEM_app(appref):
+    clfref = GMM1D_reference(
+        appref.children[0].value,
+        appref.children[1].value,
+        appref.children[2].value,
+        appref.children[3].value,
+        appref.children[4].value
+    )
 
     app = widgetify(
         GMM1D_MAPEM,
