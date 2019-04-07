@@ -1,3 +1,6 @@
+🚨🚨🚨**This repository is no longer maintained. Please head over to [geosci-labs](https://github.com/geoscixyz/geosci-labs) for active development** 🚨🚨🚨
+
+
 # em_examples
 
 [![binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/geoscixyz/em-apps/master?filepath=index.ipynb)
